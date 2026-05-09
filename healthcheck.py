@@ -27,10 +27,14 @@ def load_dotenv_file(path: str = ".env") -> None:
 load_dotenv_file()
 hc_uuid:str = os.environ.get("HC_UUID")
 ''' UUID for Healthchecks.io'''
-req_timeout:float = float(os.environ.get("REQUEST_TIMEOUT", 10))
+req_timeout_env = os.environ.get("REQUEST_TIMEOUT")
+''' HTTP request timeout in seconds, as a string from the environment variable'''
+req_timeout:float = float(req_timeout_env) if req_timeout_env else None
 ''' HTTP request timeout in seconds'''
-sleep_time:int = int(os.environ.get("SLEEP_MINUTES"))*60
+sleep_minutes = os.environ.get("SLEEP_MINUTES")
 ''' Time to sleep between pings in minutes'''
+sleep_time:int = int(sleep_minutes) * 60 if sleep_minutes else None
+''' Time to sleep between pings in seconds'''
 ping_number:int = 0
 ''' Number of pings sent to Healthchecks.io from the start'''
 ping_number_lock = threading.Lock()

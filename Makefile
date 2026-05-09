@@ -4,6 +4,7 @@ PY_FILE := healthcheck.py
 ENV_FILE := .env
 PATH_PY := $(PWD)/$(PY_FILE)
 PATH_ENV := $(PWD)/$(ENV_FILE)
+USER := $(shell whoami)
 
 .PHONY: release install clean
 
@@ -17,7 +18,7 @@ release:
 	@echo '' 											>> $(SERVICE_FILE)
 	@echo '[Service]' 									>> $(SERVICE_FILE)
 	@echo 'Type=simple' 								>> $(SERVICE_FILE)
-	@echo 'User=root' 									>> $(SERVICE_FILE)
+	@echo 'User=$(USER)'								>> $(SERVICE_FILE)
 	@echo 'EnvironmentFile=$(PATH_ENV)' 				>> $(SERVICE_FILE)
 	@echo 'WorkingDirectory=$(PWD)' 					>> $(SERVICE_FILE)
 	@echo 'ExecStart=$(PATH_PY)' 						>> $(SERVICE_FILE)
