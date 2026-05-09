@@ -19,7 +19,6 @@ release:
 	@echo '[Service]' 									>> $(SERVICE_FILE)
 	@echo 'Type=simple' 								>> $(SERVICE_FILE)
 	@echo 'User=$(USER)'								>> $(SERVICE_FILE)
-	@echo 'EnvironmentFile=$(PATH_ENV)' 				>> $(SERVICE_FILE)
 	@echo 'WorkingDirectory=$(PWD)' 					>> $(SERVICE_FILE)
 	@echo 'ExecStart=$(PATH_PY)' 						>> $(SERVICE_FILE)
 	@echo 'Restart=on-failure' 							>> $(SERVICE_FILE)
