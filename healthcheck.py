@@ -7,6 +7,24 @@ import requests
 import threading
 import signal
 
+def load_dotenv_file(path: str = ".env") -> None:
+    '''
+    Load environment variables from a .env file if present.
+    '''
+    if not os.path.exists(path):
+        return
+    try:
+        with open(path, "r", encoding="utf-8") as env_file:
+            for line in env_file:
+                line = line.strip()
+                if not line or line.startswith("#") or "=" not in line:
+                    continue
+                key, value = line.split("=", 1)
+                os.environ.setdefault(key.strip(), value.strip().strip('"').strip("'"))
+    except OSError:
+        logging.error("Unable to read .env file.")
+
+load_dotenv_file()
 hc_uuid:str = os.environ.get("HC_UUID")
 ''' UUID for Healthchecks.io'''
 req_timeout:float = float(os.environ.get("REQUEST_TIMEOUT", 10))
@@ -42,9 +60,13 @@ def check_env_set() -> None:
         if var_value is None:
             logging.error(f"{var_name} not found in environment variables.")
             ok = False
+        else:
+            logging.info(f"{var_name} is set to {var_value}.")
     if not ok:
         logging.error("Please set the required environment variables and try again.")
         exit(1)
+    else:
+        logging.info("All required environment variables are set.")
 
 def get_uptime() -> str:
     '''
@@ -123,18 +145,34 @@ def ping_healthcheck(mode:str="ping") -> bool:
     '''
     global hc_uuid
     global req_timeout
+    extra_info:dict = {}
+    ''' Extra information to include in the log messages'''
     url:str = "https://hc-ping.com/%s" % (hc_uuid)
+    ''' URL for the Healthchecks.io ping endpoint'''
+    # If the mode is not "ping", append the mode to the URL
     if mode != "ping":
         url += "/%s" % mode
+    req = {"url": url, "timeout": req_timeout, "payload": make_payload(status=mode)}
+    extra_info.update({"request": req})
     try:
         response = requests.post(
-            url,
-            timeout=req_timeout,
-            params=make_payload(status=mode)
+            url=req["url"],
+            timeout=req["timeout"],
+            json=req["payload"]
             )
-        return response.status_code == 200
+        extra_info.update({"response": {"status_code": response.status_code, "text": response.text}})
+        if response.status_code == 200:
+            logging.info(f"Ping {mode} successful: {response.text}", extra=extra_info)
+            return True
+        else:
+            logging.warning(
+                f"Ping {mode} failed with status code {response.status_code}: {response.text}",
+                extra=extra_info
+                )
+            return False
     except requests.RequestException as e:
-        logging.error("Ping failed: %s" % e)
+        extra_info.update({"error": str(e)})
+        logging.warning(f"Ping {mode} failed: {e}", extra=extra_info)
         return False
     
 def start_healthcheck() -> bool:
@@ -157,12 +195,20 @@ def ping_and_sleep() -> None:
     Send a ping to Healthchecks.io and then sleep for the configured amount of time.
     If the ping is successful, sleep for the full configured time. If the ping fails, sleep for half the configured time before trying again.
     '''
+    global sleep_time
+    st:int = sleep_time
+    ''' Time to sleep in seconds'''
     if ping_healthcheck():
-        logging.info("Ping successful. Sleeping for %d minutes." % sleep_time)
-        time.sleep(sleep_time)
+        logging.info("Ping successful. Sleeping for %d minutes." % (st/60))
     else:
-        logging.error("Ping failed. Sleeping for %d minutes." % (sleep_time/2))
-        time.sleep(sleep_time/2)
+        st = sleep_time/2
+        logging.warning("Ping failed. Sleeping for %d minutes." % (st/60))
+    try:
+        # Sleep for the configured amount of time, but allow interruption by signals
+        time.sleep(st)
+    except KeyboardInterrupt:
+        logging.info("Sleep interrupted by KeyboardInterrupt.")
+        graceful_exit()
 
 def graceful_exit() -> bool:
     '''
@@ -170,12 +216,16 @@ def graceful_exit() -> bool:
     If the stop ping is successful, log a success message. If it fails, log an error message. Finally, exit the program.
     '''
     logging.info("Shutting down gracefully...")
-    if stop_healthcheck():
-        logging.info("Healthcheck stopped successfully.")
-        return True
-    else:
-        logging.error("Failed to gracefully stop healthcheck.")
-        return False
+    try:
+        if stop_healthcheck():
+            logging.info("Healthcheck stopped successfully.")
+            exit(0)
+        else:
+            logging.error("Failed to gracefully stop healthcheck.")
+            exit(1)
+    except Exception as e:
+        logging.error(f"Error during graceful shutdown: {e}")
+        exit(1)
 
 def _signal_handler(signum, frame):
     '''
@@ -188,8 +238,7 @@ def _signal_handler(signum, frame):
         frame: The current stack frame (not used in this handler).
     '''
     logging.info("Received signal %s", signum)
-    exit:bool = graceful_exit()
-    exit(0 if exit else 1)
+    graceful_exit()
 
 def main():
     set_logging()
@@ -200,7 +249,7 @@ def main():
     if not start_healthcheck():
         exit(1)
     while True:
-        ping_healthcheck()
+        ping_and_sleep()
 
 if __name__ == "__main__":
     main()
