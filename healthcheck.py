@@ -135,10 +135,11 @@ def make_payload(status:str, info:dict= None) -> dict:
         payload.update(info)
     return payload
 
-def ping_healthcheck(mode:str="ping") -> bool:
+def ping_healthcheck(signal:str= None, mode:str="ping") -> bool:
     '''
     Send a ping to the Healthchecks.io endpoint with the specified mode.
     Args:
+        signal (str, optional): The signal to send. Defaults to None.
         mode (str): The mode of the ping, can be "ping", "start", or "stop".
     Returns:
         bool: True if the ping was successful (HTTP 200), False otherwise.
@@ -150,8 +151,8 @@ def ping_healthcheck(mode:str="ping") -> bool:
     url:str = "https://hc-ping.com/%s" % (hc_uuid)
     ''' URL for the Healthchecks.io ping endpoint'''
     # If the mode is not "ping", append the mode to the URL
-    if mode != "ping":
-        url += "/%s" % mode
+    if signal is not None:
+        url += "/%s" % signal
     req = {"url": url, "timeout": req_timeout, "payload": make_payload(status=mode)}
     extra_info.update({"request": req})
     try:
@@ -180,7 +181,7 @@ def start_healthcheck() -> bool:
     Start the healthcheck by sending a "start" ping to Healthchecks.io.
     Returns:
         bool: True if the start ping was successful, False otherwise.'''
-    return ping_healthcheck(mode="start")
+    return ping_healthcheck(signal="start", mode="start")
 
 def stop_healthcheck() -> bool:
     '''
@@ -188,7 +189,7 @@ def stop_healthcheck() -> bool:
     Returns:
         bool: True if the stop ping was successful, False otherwise.
     '''
-    return ping_healthcheck(mode="stop")
+    return ping_healthcheck(signal="fail", mode="stop")
 
 def ping_and_sleep() -> None:
     '''
@@ -206,9 +207,8 @@ def ping_and_sleep() -> None:
     try:
         # Sleep for the configured amount of time, but allow interruption by signals
         time.sleep(st)
-    except KeyboardInterrupt:
-        logging.info("Sleep interrupted by KeyboardInterrupt.")
-        graceful_exit()
+    except Exception as e:
+        logging.error("Sleep interrupted: %s" % e)
 
 def graceful_exit() -> bool:
     '''
