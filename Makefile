@@ -19,7 +19,7 @@ release:
 	@echo 'Type=simple' 								>> $(SERVICE_FILE)
 	@echo 'User=$(USER)'								>> $(SERVICE_FILE)
 	@echo 'WorkingDirectory=$(PWD)' 					>> $(SERVICE_FILE)
-	@echo 'ExecStart=$(PATH_PY)' 						>> $(SERVICE_FILE)
+	@echo 'ExecStart=/usr/bin/python3 $(PATH_PY)' 						>> $(SERVICE_FILE)
 	@echo 'Restart=on-failure' 							>> $(SERVICE_FILE)
 	@echo 'RestartSec=30s' 								>> $(SERVICE_FILE)
 	@echo 'ExecStop=/bin/kill -s SIGINT $$MAINPID' 		>> $(SERVICE_FILE)
