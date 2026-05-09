@@ -4,8 +4,7 @@ PY_FILE := healthcheck.py
 ENV_FILE := .env
 PATH_PY := $(PWD)/$(PY_FILE)
 PATH_ENV := $(PWD)/$(ENV_FILE)
-# Use 'logname' to get the actual user even if running with sudo
-USER := $(shell logname)
+USER := $(shell whoami)
 
 .PHONY: release install clean
 
