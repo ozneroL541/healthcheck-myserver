@@ -99,7 +99,7 @@ def get_uptime() -> str:
     if hours:
         parts.append(f"{hours}h")
     if minutes:
-        parts.append(f"{minutes}min")
+        parts.append(f"{minutes}m")
     if seconds or not parts:
         parts.append(f"{seconds}s")
     # Join the parts into a single string
