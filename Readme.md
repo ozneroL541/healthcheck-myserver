@@ -1,7 +1,7 @@
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 ![server](https://healthchecks.io/badge/6f6dfb3c-b9d6-4106-a467-af0f5c/v-j97T_0/server.svg)
-# Healthcheck My Serve
 
+# Healthcheck My Server
 Healthcheck service to monitor the server uptime.
 It notifies when the server is unreachable and when it starts up.
 
