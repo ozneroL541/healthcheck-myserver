@@ -76,7 +76,7 @@ def get_uptime() -> str:
     '''
     Get the system uptime in a human-readable format.
     Returns:
-        str: Uptime formatted as "Xh Ymin Zs".
+        str: Uptime formatted as "Ad Bh Cm Ds".
     '''
     try:
         # Read the uptime from /proc/uptime
@@ -85,11 +85,17 @@ def get_uptime() -> str:
     except (OSError, ValueError, IndexError):
         logging.error("Unable to read system uptime.")
         return "0s"
-    # Convert uptime from seconds to hours, minutes, and seconds
-    hours, remainder = divmod(uptime_seconds, 3600)
+    # Convert uptime from seconds to years, days, hours, minutes, and seconds
+    years, remainder = divmod(uptime_seconds, 31536000)
+    days, remainder = divmod(remainder, 86400)
+    hours, remainder = divmod(remainder, 3600)
     minutes, seconds = divmod(remainder, 60)
     # Format the uptime string
     parts = []
+    if years:
+        parts.append(f"{years}y")
+    if days:
+        parts.append(f"{days}d")
     if hours:
         parts.append(f"{hours}h")
     if minutes:
