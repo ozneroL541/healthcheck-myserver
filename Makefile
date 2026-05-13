@@ -42,4 +42,4 @@ install:
 	@echo "Service installed. Run 'sudo systemctl start $(SERVICE_FILE)' to start."
 
 clean:
-	@rm -f $(SERVICE_FILE)
+	@rm -rf $(SERVICE_FILE) __pycache__/
