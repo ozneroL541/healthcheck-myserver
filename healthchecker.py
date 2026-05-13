@@ -169,6 +169,7 @@ class HealthChecker:
                     )
                 return False
         except requests.RequestException as e:
+            self.health_time = None
             extra_info.update({"error": str(e)})
             logging.warning(f"Ping {mode} failed: {e}", extra=extra_info)
             return False
