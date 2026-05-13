@@ -31,10 +31,6 @@ class HealthChecker:
         ''' Lock to ensure thread-safe increment of the ping counter'''
         self.health_time:time.struct_time = None
         ''' Time of first successful ping of the strike'''
-        self.sys_time:time.struct_time = time.localtime()
-        ''' Current system time'''
-        self.sys_time_lock:threading.Lock = threading.Lock()
-        ''' Lock to ensure thread-safe access to the system time'''
         signal.signal(signal.SIGTERM, self._signal_handler)
         signal.signal(signal.SIGINT, self._signal_handler)
 
@@ -85,14 +81,13 @@ class HealthChecker:
             return "0s"
         return HealthChecker.sec_to_human_readable(uptime_seconds)
 
-    def get_time(self) -> str:
+    def get_time(self, sys_time:time.struct_time) -> str:
         '''
         Get the current system time in a human-readable format.
         Returns:
             str: Current time formatted as "YYYY-MM-DD HH:MM:SS".
         '''
-        with self.sys_time_lock:
-            return time.strftime("%Y-%m-%d %H:%M:%S", self.sys_time)
+        return time.strftime("%Y-%m-%d %H:%M:%S", sys_time)
 
     def get_ping_number(self) -> int:
         '''
@@ -106,44 +101,38 @@ class HealthChecker:
             self.ping_number += 1
             return current_ping
         
-    def get_health_time(self) -> str:
+    def get_health_time(self, sys_time:time.struct_time) -> str:
         '''
         Get the time of the first successful ping of the strike in a human-readable format.
         Returns:
             str: Time of the first successful ping formatted as "YYYY-MM-DD HH:MM:SS" or "0s" if no successful ping has been made.
         '''
         if self.health_time:
-            with self.sys_time_lock:
-                current_time:time.struct_time = self.sys_time
-            time_diff_sec:int = int(time.mktime(current_time) - time.mktime(self.health_time))
+            time_diff_sec:int = int(time.mktime(sys_time) - time.mktime(self.health_time))
             return HealthChecker.sec_to_human_readable(time_diff_sec)
         else:
             return "0s"
 
-    def make_payload(self, status:str, info:dict= None) -> json:
+    def make_payload(self, status:str) -> json:
         '''
         Create a payload for the healthcheck request containing uptime and current time.
         Args:
             status (str): The status of the ping, can be "ping", "start", or "stop".
-            info (dict, optional): Additional information to include in the payload. Defaults to None.
         Returns:
             dict: Payload with "uptime" and "timestamp" keys.
         '''
         # Update the system time before creating the payload to ensure it reflects the current time
-        with self.sys_time_lock:
-            self.sys_time = time.localtime()
+        current_time = time.localtime()
         payload:json = {
             "status": status,
             "ping_number": self.get_ping_number(),
-            "timestamp": self.get_time(),
+            "timestamp": self.get_time(current_time),
             "uptime": self.get_uptime(),
-            "health_time": time.strftime("%Y-%m-%d %H:%M:%S", self.health_time) if self.health_time else '0s'
+            "health_time": self.get_health_time(current_time)
         }
-        if info:
-            payload.update(info)
         return payload
 
-    def ping_healthcheck(self, signal:str= None, mode:str="ping") -> bool:
+    def ping_healthcheck(self, signal:str=None, mode:str="ping") -> bool:
         '''
         Send a ping to the Healthchecks.io endpoint with the specified mode.
         Args:
