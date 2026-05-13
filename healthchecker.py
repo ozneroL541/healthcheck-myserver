@@ -34,6 +34,7 @@ class HealthChecker:
         signal.signal(signal.SIGTERM, self._signal_handler)
         signal.signal(signal.SIGINT, self._signal_handler)
 
+    @staticmethod
     def set_logging() -> None:
         '''
         Configure logging settings for the healthcheck script.
@@ -66,6 +67,7 @@ class HealthChecker:
         # Join the parts into a single string
         return " ".join(parts)
 
+    @staticmethod
     def get_uptime() -> str:
         '''
         Get the system uptime in a human-readable format.
@@ -127,7 +129,7 @@ class HealthChecker:
             "status": status,
             "ping_number": self.get_ping_number(),
             "timestamp": self.get_time(current_time),
-            "uptime": self.get_uptime(),
+            "uptime": HealthChecker.get_uptime(),
             "health_time": self.get_health_time(current_time)
         }
         return payload
@@ -243,7 +245,7 @@ class HealthChecker:
         Run the healthcheck loop, which continuously sends pings to Healthchecks.io and sleeps for the configured amount of time.
         The loop will continue until a termination signal is received, at which point it will attempt to perform a graceful shutdown.
         '''
-        self.set_logging()
+        HealthChecker.set_logging()
         # Start the healthcheck by sending a "start" ping
         if not self.start_healthcheck():
             logging.error("Failed to start healthcheck. Exiting.")

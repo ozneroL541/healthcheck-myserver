@@ -1,2 +1,3 @@
 .env
 *.service
+__pycache__/
