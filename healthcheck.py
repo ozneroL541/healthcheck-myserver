@@ -5,7 +5,7 @@ import logging
 
 from healthchecker import HealthChecker
 
-def load_dotenv_file(path: str = ".env") -> None:
+def load_dotenv_file(path:str=".env") -> None:
     '''
     Load environment variables from a .env file if present.
     '''
@@ -22,7 +22,7 @@ def load_dotenv_file(path: str = ".env") -> None:
     except OSError:
         logging.error("Unable to read .env file.")
 
-def main():
+def main() -> None:
     load_dotenv_file()
     hc_uuid:str = os.environ.get("HC_UUID")
     ''' UUID for Healthchecks.io'''
@@ -36,6 +36,7 @@ def main():
     ''' Time to sleep between pings in seconds'''
     health_checker = HealthChecker(hc_uuid=hc_uuid, req_timeout=req_timeout, sleep_time=sleep_time)
     ''' HealthChecker instance initialized with the specified parameters '''
+    # Start the healthcheck loop, which will run indefinitely until a termination signal is received
     health_checker.run_pings()
 
 if __name__ == "__main__":

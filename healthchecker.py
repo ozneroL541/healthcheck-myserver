@@ -11,7 +11,7 @@ class HealthChecker:
     '''
     HealthChecker is a class that periodically sends pings to Healthchecks.io to indicate that the server is alive.
     '''
-    def __init__(self, hc_uuid:str, req_timeout:float, sleep_time:int):
+    def __init__(self, hc_uuid:str, req_timeout:float, sleep_time:int) -> None:
         '''
         Initialize the HealthChecker with the specified parameters.
         Args:
@@ -241,7 +241,7 @@ class HealthChecker:
         logging.info("Received signal %s, frame: %s", signum, frame)
         self.graceful_exit()
 
-    def run_pings(self):
+    def run_pings(self) -> None:
         '''
         Run the healthcheck loop, which continuously sends pings to Healthchecks.io and sleeps for the configured amount of time.
         The loop will continue until a termination signal is received, at which point it will attempt to perform a graceful shutdown.
@@ -249,7 +249,7 @@ class HealthChecker:
         HealthChecker.set_logging()
         # Start the healthcheck by sending a "start" ping
         if not self.start_healthcheck():
-            logging.error("Failed to start healthcheck. Exiting.")
+            logging.error("Start ping failed.")
             exit(1)
         # Enter the main loop to send pings and sleep
         while True:
