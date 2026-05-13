@@ -228,7 +228,7 @@ class HealthChecker:
             logging.error(f"Error during graceful shutdown: {e}")
             exit(1)
 
-    def _signal_handler(self, signum):
+    def _signal_handler(self, signum, frame) -> None:
         '''
         Handle termination signals (SIGTERM and SIGINT) to ensure a graceful shutdown of the healthcheck script.
         When a termination signal is received, this handler will log the signal,
@@ -236,8 +236,9 @@ class HealthChecker:
         and then exit the program with an appropriate status code based on the success of the graceful exit.
         Args:
             signum: The signal number received.
+            frame: The current stack frame.
         '''
-        logging.info("Received signal %s", signum)
+        logging.info("Received signal %s, frame: %s", signum, frame)
         self.graceful_exit()
 
     def run_pings(self):
