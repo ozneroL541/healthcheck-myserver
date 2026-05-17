@@ -160,21 +160,21 @@ class HealthChecker:
                 )
             extra_info.update({"response": {"status_code": response.status_code, "text": response.text}})
             if response.status_code == 200:
-                logging.info(f"Ping {mode} successful: {response.text}", extra=extra_info)
+                logging.info(f"Sending \'{mode}\' was successful: {response.text}", extra=extra_info)
                 if self.health_time is None:
                     self.health_time = time.localtime()
                 return True
             else:
                 self.health_time = None
                 logging.warning(
-                    f"Ping {mode} failed with status code {response.status_code}: {response.text}",
+                    f"Sending \'{mode}\' failed with status code {response.status_code}: {response.text}",
                     extra=extra_info
                     )
                 return False
         except requests.RequestException as e:
             self.health_time = None
             extra_info.update({"error": str(e)})
-            logging.warning(f"Ping {mode} failed: {e}", extra=extra_info)
+            logging.warning(f"Sending \'{mode}\' failed: {e}", extra=extra_info)
             return False
         
     def start_healthcheck(self) -> bool:
