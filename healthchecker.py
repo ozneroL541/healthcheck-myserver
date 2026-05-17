@@ -161,7 +161,8 @@ class HealthChecker:
             extra_info.update({"response": {"status_code": response.status_code, "text": response.text}})
             if response.status_code == 200:
                 logging.info(f"Ping {mode} successful: {response.text}", extra=extra_info)
-                self.health_time = time.localtime()
+                if self.health_time is None:
+                    self.health_time = time.localtime()
                 return True
             else:
                 self.health_time = None
