@@ -4,4 +4,4 @@ RUN apk --no-cache add python3 py3-requests
 WORKDIR /app
 COPY healthcheck.py healthchecker.py .env .
 
-CMD ["python3", "healthcheck.py"]
+ENTRYPOINT [ "python3", "healthcheck.py"]
