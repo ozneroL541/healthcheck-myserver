@@ -1,7 +1,7 @@
 PWD := $(shell pwd)
 SERVICE_FILE := healthcheck.service
 PY_FILE := src/healthcheck.py
-ENV_FILE := .env
+ENV_FILE := src/.env
 PATH_PY := $(PWD)/$(PY_FILE)
 PATH_ENV := $(PWD)/$(ENV_FILE)
 USER := $(shell whoami)
