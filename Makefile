@@ -6,7 +6,7 @@ PATH_PY := $(PWD)/$(PY_FILE)
 PATH_ENV := $(PWD)/$(ENV_FILE)
 USER := $(shell whoami)
 
-.PHONY: release install clean sysemd_file openrc_file install_systemd install_openrc
+.PHONY: release install clean systemd_file openrc_file install_systemd install_openrc
 
 .DEFAULT_GOAL := release
 
@@ -18,7 +18,7 @@ else ifeq ($(shell [ -f /sbin/openrc ] || [ -d /etc/init.d ] && echo yes),yes)
     INIT_SYSTEM := openrc
 endif
 
-sysemd_file:
+systemd_file:
 	@echo '[Unit]' 										>  $(SERVICE_FILE)
 	@echo 'Description=Healthcheck service to know if the system is alive' 	>> $(SERVICE_FILE)
 	@echo 'After=network.target' 						>> $(SERVICE_FILE)
@@ -39,7 +39,7 @@ sysemd_file:
 	@echo 'WantedBy=multi-user.target'					>> $(SERVICE_FILE)
 
 openrc_file:
-	@echo '#!/sbin/openrc-run'							>> $(SERVICE_FILE)
+	@echo '#!/sbin/openrc-run'							>  $(SERVICE_FILE)
 	@echo 'description="Healthcheck service to know if the system is alive"'	>> $(SERVICE_FILE)
 	@echo 'command="/usr/bin/python3"'					>> $(SERVICE_FILE)
 	@echo 'command_args="$(PATH_PY)"'					>> $(SERVICE_FILE)
@@ -53,7 +53,7 @@ openrc_file:
 	@echo '}'											>> $(SERVICE_FILE)
 
 install_systemd:
-	@make sysemd_file
+	@make systemd_file
 	@cp $(SERVICE_FILE) /etc/systemd/system/
 	@systemctl daemon-reload
 	@systemctl enable $(SERVICE_FILE)
