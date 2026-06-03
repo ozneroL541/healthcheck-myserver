@@ -68,9 +68,9 @@ install_openrc:
 
 install:
 	@echo "Setting file permissions..."
-	@chmod +x $(PY_FILE)
-	@touch $(ENV_FILE)
-	@chmod 644 $(ENV_FILE)
+	@chmod +x $(PWD)/$(PY_FILE)
+	@touch $(PWD)/$(ENV_FILE)
+	@chmod 644 $(PWD)/$(ENV_FILE)
 	@echo "Installing the service..."
 ifeq ($(INIT_SYSTEM),systemd)
 	@$(MAKE) install_systemd
