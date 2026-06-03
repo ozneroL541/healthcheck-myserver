@@ -6,11 +6,17 @@ PATH_PY := $(PWD)/$(PY_FILE)
 PATH_ENV := $(PWD)/$(ENV_FILE)
 USER := $(shell whoami)
 
-.PHONY: release install clean
+.PHONY: release install clean sysemd_file openrc_file install_systemd install_openrc
 
 .DEFAULT_GOAL := release
 
-INIT_SYSTEM := $(shell cat /proc/1/comm)
+INIT_SYSTEM := unknown
+
+ifeq ($(shell [ -d /run/systemd/system ] || [ -d /etc/systemd ] && echo yes),yes)
+    INIT_SYSTEM := systemd
+else ifeq ($(shell [ -f /sbin/openrc ] || [ -d /etc/init.d ] && echo yes),yes)
+    INIT_SYSTEM := openrc
+endif
 
 sysemd_file:
 	@echo '[Unit]' 										>  $(SERVICE_FILE)
@@ -60,23 +66,19 @@ install_openrc:
 	@rc-update add $(SERVICE_FILE) default
 	@echo "Service installed. Run 'sudo rc-service $(SERVICE_FILE) start' to start."
 
-install: 
+install:
 	@echo "Setting file permissions..."
 	@chmod +x $(PY_FILE)
 	@touch $(ENV_FILE)
 	@chmod 644 $(ENV_FILE)
 	@echo "Installing the service..."
-	@if [ "$(INIT_SYSTEM)" = "systemd" ]; then \
-		echo "Detected init system: systemd"; \
-		$(MAKE) install_systemd; \
-	elif [ "$(INIT_SYSTEM)" = "openrc-init" ]; then \
-		echo "Detected init system: openrc"; \
-		$(MAKE) install_openrc; \
-	else \
-		echo "Unsupported init system: systemd or openrc not found"; \
-		echo "$(INIT_SYSTEM) detected. Please install the service manually."; \
-		exit 1; \
-	fi
+ifeq ($(INIT_SYSTEM),systemd)
+	@$(MAKE) install_systemd
+else ifeq ($(INIT_SYSTEM),openrc)
+	@$(MAKE) install_openrc
+else
+	@echo "Unsupported init system. Detected: $(INIT_SYSTEM)"
+endif
 	
 	
 clean:
