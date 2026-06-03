@@ -82,4 +82,4 @@ endif
 	
 	
 clean:
-	@rm -rf $(SERVICE_FILE) __pycache__/
+	@rm -rf $(SERVICE_FILE) __pycache__/ tmp/
