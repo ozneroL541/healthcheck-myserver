@@ -1,3 +1,4 @@
 .env
 *.service
 __pycache__/
+tmp/
