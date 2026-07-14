@@ -190,7 +190,7 @@ class HealthChecker:
         Returns:
             bool: True if the stop ping was successful, False otherwise.
         '''
-        return self.ping_healthcheck(signal="fail", mode="stop")
+        return self.ping_healthcheck(signal="stop", mode="stop") and self.ping_healthcheck(signal="fail", mode="graceful_stop")
 
     def ping_and_sleep(self) -> None:
         '''
