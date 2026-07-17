@@ -154,14 +154,17 @@ class HealthChecker:
         ''' Extra information to include in the log messages'''
         url:str = "https://hc-ping.com/%s" % (self.hc_uuid)
         ''' URL for the Healthchecks.io ping endpoint'''
-        # If the mode is not "ping", append the mode to the URL
+        # If the mode is not "ping", append the signal to the URL
         if signal is not None:
+            # If the signal is a string and not in the accepted endpoints, log a warning and convert it to an integer representation
             if isinstance(signal, str) and signal not in self.ACCEPTED_ENDPOINTS:
                 logging.warning(f"Signal '{signal}' is not an accepted endpoint. Commuting it to integer {signal:d}.")
                 signal:str = ''.join(str(ord(c)) for c in signal)
             s:str = str(signal)
+            ''' String representation of the signal to append to the URL'''
             url += "/%s" % s
         req:json = {"url": url, "timeout": self.req_timeout, "payload": self.make_payload(status=mode)}
+        ''' Request information to include in the log messages'''
         extra_info.update({"request": req})
         try:
             response:requests.Response = requests.post(
@@ -169,6 +172,7 @@ class HealthChecker:
                 timeout=req["timeout"],
                 json=req["payload"]
                 )
+            ''' Response information to include in the log messages'''
             extra_info.update({"response": {"status_code": response.status_code, "text": response.text}})
             if response.status_code == 200:
                 logging.info(f"Sending \'{mode}\' was successful: {response.text}", extra=extra_info)
@@ -212,7 +216,9 @@ class HealthChecker:
             bool: True if the stop ping was successful, False otherwise.
         '''
         stop:bool = self.ping_healthcheck(signal=0, mode="stop")
+        '''Result of the stop ping'''
         fail:bool = self.send_fail_ping(reason="graceful_stop")
+        '''Result of the fail ping'''
         return stop and fail
 
     def ping_and_sleep(self) -> None:
@@ -220,16 +226,16 @@ class HealthChecker:
         Send a ping to Healthchecks.io and then sleep for the configured amount of time.
         If the ping is successful, sleep for the full configured time. If the ping fails, sleep for half the configured time before trying again.
         '''
-        st:int = self.sleep_time
+        timeout:int = self.sleep_time
         ''' Time to sleep in seconds'''
         if self.ping_healthcheck():
-            logging.info("Ping successful. Sleeping for %d minutes." % (st/60))
+            logging.info("Ping successful. Sleeping for %d minutes." % (timeout/60))
         else:
-            st = self.sleep_time/2
-            logging.warning("Ping failed. Sleeping for %d minutes." % (st/60))
+            timeout = self.sleep_time/2
+            logging.warning("Ping failed. Sleeping for %d minutes." % (timeout/60))
         try:
             # Sleep for the configured amount of time, but allow interruption by signals
-            time.sleep(st)
+            time.sleep(timeout)
         except Exception as e:
             logging.error("Sleep interrupted: %s" % e)
 
