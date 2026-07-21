@@ -6,7 +6,7 @@ PATH_PY := $(PWD)/$(PY_FILE)
 PATH_ENV := $(PWD)/$(ENV_FILE)
 USER := $(shell whoami)
 
-.PHONY: release install clean systemd_file openrc_file install_systemd install_openrc
+.PHONY: release install clean systemd_file openrc_file install_systemd install_openrc uninstall
 
 .DEFAULT_GOAL := release
 
@@ -80,6 +80,22 @@ else
 	@echo "Unsupported init system. Detected: $(INIT_SYSTEM)"
 endif
 	
-	
 clean:
 	@rm -rf $(SERVICE_FILE) __pycache__/ tmp/
+
+uninstall:
+ifeq ($(INIT_SYSTEM),systemd)
+	@systemctl stop $(SERVICE_FILE)
+	@systemctl disable $(SERVICE_FILE)
+	@rm -f /etc/systemd/system/$(SERVICE_FILE)
+	@systemctl daemon-reload
+	@echo "Service uninstalled from systemd."
+else ifeq ($(INIT_SYSTEM),openrc)
+	@rc-service $(SERVICE_FILE) stop
+	@rc-update del $(SERVICE_FILE) default
+	@rm -f /etc/init.d/$(SERVICE_FILE)
+	@echo "Service uninstalled from OpenRC."
+else
+	@echo "Unsupported init system. Detected: $(INIT_SYSTEM)"
+endif
+	@make clean

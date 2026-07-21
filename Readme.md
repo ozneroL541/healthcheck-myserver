@@ -12,7 +12,8 @@ It notifies when the server is unreachable and when it starts up.
 
 ## Requirements
 - Python3
-- systemd
+- systemd or openrc
+- make
 - [Healthcheck](#https://healthchecks.io)
 
 ## Installation
@@ -34,6 +35,10 @@ sudo make install
 4. Start the service or reboot the server.
 ```
 sudo systemctl start healthcheck.service
+```
+# Disinstallation
+```
+sudo make uninstall
 ```
 
 ## Authors
