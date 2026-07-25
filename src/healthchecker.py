@@ -207,7 +207,7 @@ class HealthChecker:
         Returns:
             bool: True if the fail ping was successful, False otherwise.
         '''
-        return self.ping_healthcheck(signal="fail", mode="fail")
+        return self.ping_healthcheck(signal="fail", mode=reason)
 
     def stop_healthcheck(self) -> bool:
         '''
@@ -256,7 +256,7 @@ class HealthChecker:
                 exit(1)
         except Exception as e:
             logging.error(f"Error during graceful shutdown: {e}")
-            exit(1)
+            exit(2)
 
     def _signal_handler(self, signum, frame) -> None:
         '''
